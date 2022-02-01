@@ -1,4 +1,4 @@
-from flaskfrom  import Flask, request, jsonify
+from flask  import Flask, request, jsonify
 from flask_sqlalchemy import SQLAlchemy
 from flask_marshmallow import Marshmallow
 from flask_cors import CORS
@@ -181,6 +181,10 @@ def add_order():
 def get_all_orders():
     all_orders  = Order.query.all()
     return jsonify(orders_schema.dump(all_orders))
+
+@app.route('/')
+def hello():
+    return "Hey flask"
 
 
 
