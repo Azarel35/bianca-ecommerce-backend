@@ -182,11 +182,5 @@ def get_all_orders():
     all_orders  = Order.query.all()
     return jsonify(orders_schema.dump(all_orders))
 
-@app.route('/')
-def hello():
-    return "Hey flask"
-
-
-
 if __name__=='__main__':
     app.run(debug=True)
