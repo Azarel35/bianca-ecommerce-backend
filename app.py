@@ -5,6 +5,7 @@ from flask_cors import CORS
 import os  
 
 app = Flask(__name__)
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = True
 
 basedir = os.path.abspath(os.path.dirname(__file__))
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + os.path.join(basedir, 'app.sqlite')
@@ -27,7 +28,7 @@ class User(db.Model):
 
 class UserSchema(ma.Schema):
     class Meta:
-        fields = ('id','name', 'email')
+        fields = ('id','name', 'email', 'password')
     
 user_schema = UserSchema()
 users_schema = UserSchema(many=True)
@@ -38,17 +39,18 @@ class Product(db.Model):
     description = db.Column(db.String, nullable=False)
     price = db.Column(db.String, nullable=False)
     category = db.Column(db.String, nullable=False)
-    orders = db.relationship('Order', backref='product', lazy=True)
+    
 
-
-    def __init__(self, name, description, price):
+    def __init__(self, name, description, price, category):
         self.name = name
         self.description = description
         self.price = price 
+        self.category = category
+
 
 class ProductSchema(ma.Schema):
     class Meta:
-        fields = ('id', 'name', 'description', 'price')
+        fields = ('id', 'name', 'description', 'price', 'category')
     
 product_schema = ProductSchema()
 products_schema = ProductSchema(many=True)
@@ -57,23 +59,16 @@ class Address(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     street = db.Column(db.String, nullable=False)
     number = db.Column(db.String, nullable=False)
-    postalCode = db.Column(db.String, nullable=False)
-    state = db.Column(db.String, nullable=False)
     city = db.Column(db.String, nullable=False)
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'),
-        nullable=False)
 
-    def __init__(self, street, number, postalCode, state, city, user_id):
+    def __init__(self, street, number, city):
         self.street = street
         self.number = number
-        self.postalCode = postalCode
-        self.state = state
         self.city = city 
-        self.user_id = user_id
 
 class AddressSchema(ma.Schema):
     class Meta:
-        fields = ('id','street', 'number', 'postalCode', 'state', 'city')
+        fields = ('id','street', 'number', 'city')
     
 address_schema = AddressSchema()
 addresses_schema = AddressSchema(many=True)
@@ -82,19 +77,16 @@ class Order(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     quantity = db.Column(db.String, nullable=False)
     total = db.Column(db.String, nullable=False)
-    product_id = db.Column(db.Integer, db.ForeignKey('product.id'),
-        nullable=False)
     
 
-    def __init__(self, quantity, total, date, product_id):
+    def __init__(self, quantity, total):
         self.quantity = quantity
         self.total = total
-        self.date = date
-        self.product_id = product_id 
+        
 
 class OrderSchema(ma.Schema):
     class Meta:
-        fields = ('id','quantity', 'total', 'date')
+        fields = ('id','quantity', 'total')
     
 order_schema = OrderSchema()
 orders_schema = OrderSchema(many=True)
@@ -133,8 +125,9 @@ def add_product():
     name = request.json.get("name")
     description = request.json.get("description")
     price = request.json.get("price")
+    category = request.json.get("category")
 
-    new_product = Product(name, description, price)
+    new_product = Product(name, description, price, category)
     db.session.add(new_product)
     db.session.commit()
 
@@ -149,12 +142,9 @@ def get_all_products():
 def add_address():
     street = request.json.get("street")
     number = request.json.get("number")
-    postalCode = request.json.get("postalCode")
-    state = request.json.get("state")
     city = request.json.get("city")
-    user_id = request.json.get("user_id")
-
-    new_address = Address(street, number, postalCode, state, city,user_id)
+   
+    new_address = Address(street, number, city)
     db.session.add(new_address)
     db.session.commit()
 
@@ -169,9 +159,8 @@ def get_all_addresses():
 def add_order():
     quantity = request.json.get("quantity")
     total = request.json.get("total")
-    date = request.json.get("date")
 
-    new_order = Order(quantity, total, date)
+    new_order = Order(quantity, total)
     db.session.add(new_order)
     db.session.commit()
 
