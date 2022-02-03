@@ -5,7 +5,7 @@ from flask_cors import CORS
 import os  
 
 app = Flask(__name__)
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = True
+
 
 basedir = os.path.abspath(os.path.dirname(__file__))
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + os.path.join(basedir, 'app.sqlite')
@@ -137,6 +137,11 @@ def add_product():
 def get_all_products():
     all_products  = Product.query.all()
     return jsonify(products_schema.dump(all_products))
+
+@app.route("/product/<id>", methods=["GET"])
+def get_product(id):
+    product = Product.query.get(id)
+    return product_schema.jsonify(product)
 
 @app.route('/address', methods=["POST"])
 def add_address():
