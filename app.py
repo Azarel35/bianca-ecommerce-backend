@@ -112,11 +112,12 @@ def get_all_users():
 def read_user():
     email = request.json['email']
     password = request.json['password']
-    query = "SELECT * FROM user WHERE email = '{0}' AND password ='{1}' ".format(email,password)
-    results = db.session.execute(query)
-    if results :
-        return  jsonify({"user_data":users_schema.dump(results)}) 
-
+    user = User.query.filter_by(email=email).first()
+    if user:
+        if user.password == password:
+             return  jsonify({"user_email": user.email}) 
+        else:
+              return jsonify({'Message': "wrong password", 'successful': False})
     else :
         return jsonify({'Message': "User not found.", 'successful': False})
 
